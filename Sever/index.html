@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Servidor de filtrado de imágenes</title>
+</head>
+<body>
+
+	<div>
+		<h5><b>Selecciona el archivo:</b></h5>
+		<input id='img_input' type='file' accept='image/*' name='image' />
+		<p><img id='preview_img' /></p>
+		<p id="base64_text"></p> <!-- This code is just for debugging --> 
+	</div>
+		
+	<script type="text/javascript">
+
+		var imgData;
+
+		/* 
+		*	Read data from HTML input using Javascript API
+		*   This code is a modification obtained at the website https://www.html5rocks.com/es/tutorials/file/dndfiles/
+		*   Creator: Eric Bidelman, Jun 18, 2010.
+		*/
+		function handleFileSelect(evt) {
+			// FileList object
+		    var files = evt.target.files; 
+
+		    // Loop through the FileList and render image files as thumbnails.
+		    for (var i = 0, f; f = files[i]; i++) {
+
+		      	// Only process image files.
+		      	if (!f.type.match('image.*')) {
+		        	continue;
+		      	}
+
+		      	// Create an object file reader.
+		      	var reader = new FileReader();
+
+		      	// Closure to capture the file information.
+		      	reader.onload = (function(theFile) {
+		        	return function(e) {
+		          		// Set the source to the image in the HTML part of this code.
+		          		document.getElementById("preview_img").src = e.target.result;
+		          		// Get the image for being proccesed using the HTML object.
+		          		var img = document.getElementById("preview_img");
+
+						/* 
+						*	HTML image convertion to RGB array
+						*   This code is a modification obtained at the website https://www.w3schools.com/tags/canvas_drawimage.asp
+						*   Creator: w3schools.com
+						*/
+
+		          		// Creating a temporal canvas object to manipulate the image.
+					    var canvas = document.createElement("canvas");
+					    // Setting the canvas dimentions with img information.
+			  			canvas.width = img.width;
+			  			canvas.height = img.height;
+						// Setting the canvas to work with 2D objects.
+			   			var ctx = canvas.getContext("2d");
+			   			// Copy the image contents to the canvas
+						ctx.drawImage(img, 0, 0);
+			   			// Image convertion to an RGB array list. 
+			   			imgData = ctx.getImageData(0, 0, img.width, img.height).data;
+
+						document.getElementById("base64_text").innerHTML = imgData; //This is for debuggind. Erase when finish.
+		        }})(f);
+
+		      	// Read in the image file as a data URL.
+		      	reader.readAsDataURL(f);
+		    }
+      		
+  		}
+
+  		// Add the event listener. When an image is detected, the listeners will call the function handleFileSelect.
+		document.getElementById('img_input').addEventListener('change', handleFileSelect, false);
+
+		/* 
+		*	This is a POST method to send the image data to the server in JSON format.
+		*   This code is a modification obtained at the website https://stackoverflow.com/questions/6418220/javascript-send-json-object-with-ajax
+		*   Creator: Nathan Romano, Jun 20, 2011.
+		*/
+		function POST(){
+			var xmlhttp = new XMLHttpRequest();
+			xmlhttp.open("POST", "/json-handler");
+			xmlhttp.setRequestHeader("Content-Type", "application/json");
+			xmlhttp.send(JSON.stringify({base64_img: imgData.toString()}));
+	  	}
+
+	</script>
+
+	<button id='send_img_button' onclick='POST()'>Procesar</button>
+
+</body>
+</html>
+
