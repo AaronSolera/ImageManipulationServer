@@ -3,7 +3,7 @@ MAKE_STATIC_LIB = ar rv
 LIB = cd ./lib &&
 
 server: libhttpserver.a
-	$(CC) -o server ./src/server.c -I./include ./lib/libhttpserver.a ./lib/libjsonhandler.a
+	$(CC) -o server ./src/server.c -I./include ./lib/libhttpserver.a ./lib/libjsonhandler.a -pthread
 
 libhttpserver.a: httpserver.o
 	$(LIB) $(MAKE_STATIC_LIB) libhttpserver.a httpserver.o

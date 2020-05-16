@@ -1,9 +1,5 @@
-/*  
-*   Server side C program to demonstrate Socket programming
-*   This code is a modification obtained at the website https://medium.com/from-the-scratch/http-server-what-do-you-need-to-know-to-build-a-simple-http-server-from-scratch-d1ef8945e4fa
-*   Creator: Skrew Everything, Mar 15, 2018.
-*/
 #include <stdio.h>
+#include <pthread.h> 
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -12,7 +8,15 @@
 #include <string.h>
 #include <jsonhandler.h>
 
+/*  
+*   Server side C program to demonstrate Socket programming
+*   This code is a modification obtained at the website https://medium.com/from-the-scratch/http-server-what-do-you-need-to-know-to-build-a-simple-http-server-from-scratch-d1ef8945e4fa
+*   Creator: Skrew Everything, Mar 15, 2018.
+*/
+
 #define PORT 1717
+#define TRUE 1
+#define FALSE 0
 #define MAX_BUFFER_SIZE 41943040
 
 // Variables for all file descriptors given by the operating system.
@@ -21,11 +25,21 @@ int server_fd, new_socket, html_fd;
 struct sockaddr_in address;
 // Size of the struct in bytes.
 int addrlen = sizeof(address);
+// Main server thread.
+pthread_t server_thread;
+// Client response memory variables. 
+char * buffer;
+char * temp_buffer;
 
-void initServer(){
+void init(){
     // Creating socket file descriptor. If the syscall socket returns 0 there is an error.
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("In socket");
+        exit(EXIT_FAILURE);
+    }
+    //This is to prevent the "In bind: Address already in use" error
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &(int){1}, sizeof(int)) < 0){
+        perror("setsockopt(SO_REUSEPORT) failed");
         exit(EXIT_FAILURE);
     }
     // Setting all network values in address struct.
@@ -44,22 +58,19 @@ void initServer(){
         perror("In listen");
         exit(EXIT_FAILURE);
     }
+    // Reserving memory to avoid segmentation fault when the server is suddenly closed.
+    buffer = (char *) calloc(1, sizeof(char));
+    temp_buffer = (char *) calloc(1, sizeof(char));
 }
 
-void startServer(){
-	// Reserving memory to avoid segmentation fault when the server is suddenly closed.
-    char * buffer = (char *) calloc(1, sizeof(char));
-
-    // Endless while. This need to be placed inside a thread. <--------------------------------------------
-    while(1) {
-        printf("\n+++++++ Waiting for new connection ++++++++\n\n");
+void *run(void *ptr){
+    printf("\n------------------ Waiting for new connection ------------------\n\n");
+    // Server endless while. It continues forever while there is no error at accepting the client connection request. If the syscall accept returns less than 0 there is an error.
+    while((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
         // Releasing buffer memory to avoid segmentation fault.
         free(buffer);
-        // Accepting the client connection request. If the syscall accept returns less than 0 there is an error.
-        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) {
-            perror("In accept");
-            exit(EXIT_FAILURE);
-        }
+        free(temp_buffer);
+            
         // Reserving memory for client response.
         char * buffer = (char *) calloc(MAX_BUFFER_SIZE, sizeof(char));
         // This buffer helps to read the socket more than once because the data is not being completely read.
@@ -81,9 +92,40 @@ void startServer(){
         }
 
         printf("%s\n",buffer);
-        printf("------------------Data has been sent to the client-------------------\n");
-
+        printf("\n------------------ Client connection finished -------------------\n\n");
+        printf("\n------------------ Waiting for new connection ------------------\n\n");
         // Closing the socket.
         close(new_socket);
-    }
+    } 
+}
+
+void start(){
+    // Initializing all server variables
+    init();
+    // Main server thread initialization
+    pthread_create(&server_thread, NULL, run, NULL);
+}
+
+void stop(){
+    // Close the sever thread
+    pthread_cancel(server_thread);
+    // Closing the socket.
+    close(new_socket);
+    close(server_fd);
+}
+
+void startServer(){
+    start();
+    printf("Http Server has started\n");
+}
+
+void stopServer(){
+    stop();
+    printf("Http Server has stoped\n");
+}
+
+void restartServer(){
+    stop();
+    start();
+    printf("Http Server has been restarted\n");
 }

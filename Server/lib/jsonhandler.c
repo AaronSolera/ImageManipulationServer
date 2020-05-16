@@ -16,6 +16,15 @@ char * find(char * string, char * text){
     return NULL;
 }
 
+char * findUntil(char * string, char * text){
+    char * text_end = find(string, text);
+    char * split_string = (char *) calloc(text_end - text, sizeof(char));
+    for(int c = 0; c < (text_end - text) - 1; c++) {
+        *(split_string + c) = *(text + c);
+    }
+    return split_string;
+}
+
 char * findBetween(char * start, char * end, char * text){
     char * start_text = find(start, text);
     if(start_text != NULL){
