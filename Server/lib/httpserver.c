@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <jsonhandler.h>
+#include <datahandler.h>
 
 /*  
 *   Server side C program to demonstrate Socket programming
@@ -14,10 +14,9 @@
 *   Creator: Skrew Everything, Mar 15, 2018.
 */
 
-#define PORT 1717
 #define TRUE 1
 #define FALSE 0
-#define MAX_BUFFER_SIZE 41943040
+#define MAX_RESPONSE_SIZE 41943040
 
 // Variables for all file descriptors given by the operating system.
 int server_fd, new_socket, html_fd;
@@ -28,8 +27,14 @@ int addrlen = sizeof(address);
 // Main server thread.
 pthread_t server_thread;
 // Client response memory variables. 
-char * buffer;
-char * temp_buffer;
+char * response;
+char * temp_response;
+// Configuration file string data.
+char * conf_data;
+// Server port.
+int port = 1717;
+// Configuration struct. This has all configuration file usefull data.
+conf info;
 
 void init(){
     // Creating socket file descriptor. If the syscall socket returns 0 there is an error.
@@ -37,7 +42,7 @@ void init(){
         perror("In socket");
         exit(EXIT_FAILURE);
     }
-    //This is to prevent the "In bind: Address already in use" error
+    //This is to prevent the "In bind: Address already in use" error.
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &(int){1}, sizeof(int)) < 0){
         perror("setsockopt(SO_REUSEPORT) failed");
         exit(EXIT_FAILURE);
@@ -45,7 +50,7 @@ void init(){
     // Setting all network values in address struct.
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons( PORT );
+    address.sin_port = htons(port);
     // Set all memory spaces with \0 value in sin_zero struct attribute.
     memset(address.sin_zero, '\0', sizeof address.sin_zero);
     // Stablishing socket connection with bind system call. If the syscall bind returns less than 0 there is an error.
@@ -59,39 +64,42 @@ void init(){
         exit(EXIT_FAILURE);
     }
     // Reserving memory to avoid segmentation fault when the server is suddenly closed.
-    buffer = (char *) calloc(1, sizeof(char));
-    temp_buffer = (char *) calloc(1, sizeof(char));
+    response = (char *) calloc(1, sizeof(char));
+    temp_response = (char *) calloc(1, sizeof(char));
+    // Reading configuration file.
+    setConfigurationFileData(&info);
+    port = info.port;
 }
 
 void *run(void *ptr){
     printf("\n------------------ Waiting for new connection ------------------\n\n");
     // Server endless while. It continues forever while there is no error at accepting the client connection request. If the syscall accept returns less than 0 there is an error.
     while((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
-        // Releasing buffer memory to avoid segmentation fault.
-        free(buffer);
-        free(temp_buffer);
+        // Releasing response memory to avoid segmentation fault.
+        free(response);
+        free(temp_response);
             
         // Reserving memory for client response.
-        char * buffer = (char *) calloc(MAX_BUFFER_SIZE, sizeof(char));
-        // This buffer helps to read the socket more than once because the data is not being completely read.
-        char * temp_buffer = (char *) calloc(MAX_BUFFER_SIZE/4, sizeof(char));
-        // Reading client response and storing that data into the buffer.
-        read(new_socket, buffer, MAX_BUFFER_SIZE);
+        char * response = (char *) calloc(MAX_RESPONSE_SIZE, sizeof(char));
+        // This response helps to read the socket more than once because the data is not being completely read.
+        char * temp_response = (char *) calloc(MAX_RESPONSE_SIZE/4, sizeof(char));
+        // Reading client response and storing that data into the response.
+        read(new_socket, response, MAX_RESPONSE_SIZE);
         // Using the function getResponseProperty we get the content length from the response
-        char * request_size_str = getResponseProperty("Content-Length: ", buffer); 
+        char * request_size_str = getProperty("Content-Length", response); 
         // Check if content length property exists
         if(request_size_str != NULL){
             // Turning content length to integer
             int request_size = atoi(request_size_str);
-            // If the content read by the buffer is less than the content lenght, we read again the socket until we get the whole response
-            while(strlen(buffer) < request_size){
-                read(new_socket, temp_buffer, MAX_BUFFER_SIZE/4);
-                strcat(buffer, temp_buffer);
-                memset(temp_buffer, 0, MAX_BUFFER_SIZE/4);
+            // If the content read by the response is less than the content lenght, we read again the socket until we get the whole response
+            while(strlen(response) < request_size){
+                read(new_socket, temp_response, MAX_RESPONSE_SIZE/4);
+                strcat(response, temp_response);
+                memset(temp_response, 0, MAX_RESPONSE_SIZE/4);
             }
         }
 
-        printf("%s\n",buffer);
+        printf("%s\n",response);
         printf("\n------------------ Client connection finished -------------------\n\n");
         printf("\n------------------ Waiting for new connection ------------------\n\n");
         // Closing the socket.
@@ -109,7 +117,7 @@ void start(){
 void stop(){
     // Close the sever thread
     pthread_cancel(server_thread);
-    // Closing the socket.
+    // Closing the used sockets.
     close(new_socket);
     close(server_fd);
 }
