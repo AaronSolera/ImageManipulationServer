@@ -15,7 +15,7 @@ typedef struct info conf;
 
 void   checkPath(char * path);
 char * getProperty(char * property, char * data);
-void   setConfigurationFileData(conf * info);
+void   setConfigurationFileData(conf * info, char* configFilePath);
 char * getJSON(char * response);
 
 #endif

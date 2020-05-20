@@ -32,11 +32,14 @@ char * temp_response;
 // Configuration file string data.
 char * conf_data;
 // Server port.
-int port = 1717;
+int port;
 // Configuration struct. This has all configuration file usefull data.
 conf info;
 
-void init(){
+void init(char* configFilePath){
+    // Reading configuration file.
+    setConfigurationFileData(&info, configFilePath);
+    port = info.port;
     // Creating socket file descriptor. If the syscall socket returns 0 there is an error.
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("In socket");
@@ -66,9 +69,6 @@ void init(){
     // Reserving memory to avoid segmentation fault when the server is suddenly closed.
     response = (char *) calloc(1, sizeof(char));
     temp_response = (char *) calloc(1, sizeof(char));
-    // Reading configuration file.
-    setConfigurationFileData(&info);
-    port = info.port;
 }
 
 void *run(void *ptr){
@@ -107,9 +107,9 @@ void *run(void *ptr){
     } 
 }
 
-void start(){
+void start(char* configFilePath){
     // Initializing all server variables
-    init();
+    init(configFilePath);
     // Main server thread initialization
     pthread_create(&server_thread, NULL, run, NULL);
 }
@@ -122,18 +122,12 @@ void stop(){
     close(server_fd);
 }
 
-void startServer(){
-    start();
+void startServer(char* configFilePath){
+    start(configFilePath);
     printf("Http Server has started\n");
 }
 
 void stopServer(){
     stop();
     printf("Http Server has stoped\n");
-}
-
-void restartServer(){
-    stop();
-    start();
-    printf("Http Server has been restarted\n");
 }
