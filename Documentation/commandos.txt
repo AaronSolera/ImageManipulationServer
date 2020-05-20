@@ -1,0 +1,9 @@
+pidof ImageServer
+
+sudo systemctl start ImageServer
+sudo systemctl status ImageServer
+sudo systemctl restart ImageServer
+sudo systemctl stop ImageServer
+
+
+path syslog = var/log/syslog
