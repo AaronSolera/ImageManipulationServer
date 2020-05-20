@@ -1,27 +1,13 @@
-CC = gcc
-MAKE_STATIC_LIB = ar rv
-LIB = cd ./lib &&
-PROG=ImageServer
+CC=gcc
 CFLAGS=-I.
+PROG=ImageServer
 
 .PHONY	:	all
 
-all: daemon config
+all	: build	config
 
-daemon : libhttpserver.a
-	$(CC) -o ./bin/$(PROG) ./src/$(PROG).c -I./include ./lib/libhttpserver.a ./lib/libdatahandler.a -pthread
-
-libhttpserver.a: httpserver.o
-	$(LIB) $(MAKE_STATIC_LIB) libhttpserver.a httpserver.o
-
-httpserver.o: libdatahandler.a ./lib/httpserver.c
-	$(LIB) $(CC) -c httpserver.c -I../include
-
-libdatahandler.a: datahandler.o
-	$(LIB) $(MAKE_STATIC_LIB) libdatahandler.a datahandler.o
-
-datahandler.o: ./lib/datahandler.c
-	$(LIB) $(CC) -c datahandler.c
+build	:
+		$(CC) -o ./bin/$(PROG) ./src/$(PROG).c
 
 config	:
 		@echo "Moving bin file..."

@@ -150,18 +150,11 @@ char * getProperty(char * property, char * data){
     return findBetween(temp_property, "\n", data, 0);
 }
 
-void setConfigurationFileData(conf * info){
+void setConfigurationFileData(conf * info, char* configFilePath){
     char * config_file;
     // Using access to know the file existance
-    if (access("config.conf", F_OK) == -1){
-        config_file = "PORT: 1717\nCOLOR_DIR: color\nRECORD_DIR: record\nFILTER_DIR: filter";
-        printf("Configuration file does not exist. Creating a generic one.\n");
-        writeFile("config.conf", config_file);
-    }
-    else{
-        config_file = readFile("config.conf");
-        printf("Configuration file successsfuly read. Everything has been configured.\n");
-    }
+    config_file = readFile(configFilePath);
+    printf("Configuration file successsfuly read. Everything has been configured.\n");
     // Setting all conf struct values for being used by the server.
     info->port = atoi(getProperty("PORT",config_file));
     info->red_path = mergeString(getProperty("COLOR_DIR", config_file),"/red");
