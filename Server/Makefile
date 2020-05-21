@@ -9,12 +9,12 @@ CFLAGS=-I.
 all: daemon config
 
 daemon : libhttpserver.a
-	$(CC) -o ./bin/$(PROG) ./src/$(PROG).c -I./include ./lib/libhttpserver.a ./lib/libdatahandler.a -pthread
+	$(CC) -o ./bin/$(PROG) ./src/$(PROG).c -I./include ./lib/libhttpserver.a ./lib/libdatahandler.a ./lib/libprocesshandler.a -pthread
 
 libhttpserver.a: httpserver.o
 	$(LIB) $(MAKE_STATIC_LIB) libhttpserver.a httpserver.o
 
-httpserver.o: libdatahandler.a ./lib/httpserver.c
+httpserver.o: libdatahandler.a libprocesshandler.a ./lib/httpserver.c
 	$(LIB) $(CC) -c httpserver.c -I../include
 
 libdatahandler.a: datahandler.o
@@ -22,6 +22,12 @@ libdatahandler.a: datahandler.o
 
 datahandler.o: ./lib/datahandler.c
 	$(LIB) $(CC) -c datahandler.c
+
+libprocesshandler.a: processhandler.o
+	$(LIB) $(MAKE_STATIC_LIB) libprocesshandler.a processhandler.o
+
+processhandler.o: ./lib/processhandler.c
+	$(LIB) $(CC) -c processhandler.c
 
 config	:
 		@echo "Moving bin file..."
