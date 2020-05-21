@@ -5,9 +5,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 
 #define MAX_FILE_SIZE 10485760
 
+// Struct used for storing an configuring information abstraction.
 struct info {
    char * red_path;
    char * green_path;
@@ -17,9 +19,9 @@ struct info {
    char * record_path;
    int port;
 };
-
 typedef struct info conf;
 
+// This function returns the right side of a text since a dividing string. This dividing string can be more than once inside the text, so the occurrence parameter will demand which of them is.
 char * findRight(char * string, char * text, int occurrence){
     int string_counter = 0;
     for(int text_counter = 0; text_counter < strlen(text); text_counter ++){
@@ -37,10 +39,11 @@ char * findRight(char * string, char * text, int occurrence){
     return NULL;
 }
 
+// This function returns the left side of a text since a dividing string. This dividing string can be more than once inside the text, so the occurrence parameter will demand which of them is.
 char * findLeft(char * string, char * text, int occurrence){
     char * text_end = findRight(string, text, occurrence);
     if(text_end != NULL){
-        char * split_string = (char *) calloc(text_end - text, sizeof(char));
+        char * split_string = (char *) calloc((text_end - text) + 1, sizeof(char));
         for(int c = 0; c < (text_end - text) - 1; c++) {
             *(split_string + c) = *(text + c);
         }
@@ -49,6 +52,7 @@ char * findLeft(char * string, char * text, int occurrence){
     return NULL;
 }
 
+// This fucntion returns the middle side between two dividing strings inside a text. These dividing strings can be more than once inside the text, so the occurrence parameter will demand which of them are.
 char * findBetween(char * start, char * end, char * text, int occurrence){
     char * start_text, * end_text;
     if((start_text = findRight(start, text, occurrence)) != NULL){
@@ -62,11 +66,11 @@ char * findBetween(char * start, char * end, char * text, int occurrence){
     }
 }
 
+// This function merges two strings.
 char * mergeString(char * string1, char * string2){
     int len1 = strlen(string1), len2 = strlen(string2);
-    char * merge_string = (char *) calloc(len1 + len2, sizeof(char));
-    for(int c1 = 0; c1 < len1; c1++)
-    {
+    char * merge_string = (char *) calloc(len1 + len2 + 1, sizeof(char));
+    for(int c1 = 0; c1 < len1; c1++){
         * (merge_string + c1) = * (string1 + c1);
     }
     for(int c2 = 0; c2 < len2; c2++)
@@ -76,6 +80,7 @@ char * mergeString(char * string1, char * string2){
     return merge_string;
 }
 
+// This function creates a directory using mkdir system call.
 void createDirectory(char * path){
     printf("The directory %s does not exist. Creating it.\n", path);
     if(mkdir(path, 0777) == -1) {
@@ -96,13 +101,12 @@ void checkDirectory(char * path){
     if(stat(path, &s) == -1) {
         createDirectory(path);
     } else {
-        if S_ISDIR(s.st_mode)
-            printf("The directory already exists.\n");
-        else
+        if (1 - S_ISDIR(s.st_mode))
             createDirectory(path);
     }
 }
 
+// This function checks if a given path exists. If the path does not exist, it will be created.
 void checkPath(char * path){
     int occurrence_counter = 0;
     char * temp_path;
@@ -112,11 +116,12 @@ void checkPath(char * path){
     checkDirectory(path);
 }
 
+// This function reads a file. If the file does not exist, it will be created. 
 char * readFile(char * name){
     // Reserving memory to read the file.
     char * file_memory = (char *) calloc(MAX_FILE_SIZE, sizeof(char));
     // Openning the html document in read-only mode.
-    int fd = open(name, O_RDONLY); 
+    int fd = open(name, O_CREAT | O_RDONLY, 0644); 
     // Reding the whole file.
     read(fd, file_memory, MAX_FILE_SIZE); 
     // Closing read file.
@@ -135,6 +140,7 @@ char * readFile(char * name){
     return file_string;
 }
 
+// This function write a file. If the file does not exist, it will be created. 
 char * writeFile(char* name, char * data){
     // Openning file in read-only mode. If file does not exist, it will be generated.
     int fd = open(name, O_CREAT | O_WRONLY, 0644);
@@ -145,15 +151,17 @@ char * writeFile(char* name, char * data){
     printf("------------------------------------------------------------\n%s\n------------------------------------------------------------\nThis has been witten at %s\n------------------------------------------------------------\n", data, name);
 }
 
+// This was meant for getting http Post requests properties, but it works for every "key: value" format.
 char * getProperty(char * property, char * data){
     char * temp_property = mergeString(property, ": ");
-    return findBetween(temp_property, "\n", data, 0);
+    temp_property = findBetween(temp_property, "\n", data, 0);
+    return temp_property;
 }
 
-void setConfigurationFileData(conf * info, char* configFilePath){
-    char * config_file;
-    // Using access to know the file existance
-    config_file = readFile(configFilePath);
+// This function will read the existing configuration file for creating or checking the needed directories.
+void setConfigurationFileData(conf * info){
+    char * config_file = readFile("/etc/server/config.conf");
+    printf("%s\n", config_file);
     printf("Configuration file successsfuly read. Everything has been configured.\n");
     // Setting all conf struct values for being used by the server.
     info->port = atoi(getProperty("PORT",config_file));
@@ -172,6 +180,66 @@ void setConfigurationFileData(conf * info, char* configFilePath){
     checkPath(info->record_path);
 }
 
-char * getJSON(char * response){
-    return findRight(response, "\n\n", 0);
+// It converts an integer into a String.
+char * intoString(int x){
+    int length = snprintf(NULL, 0, "%d", x);
+    char* str = malloc(length + 1);
+    snprintf(str, length + 1, "%d", x);
+    return str;
 }
+
+// This is used for writting at the log file with relevant process information.
+void writeLog(char * path, char * client, char * file, char * time, char * status){
+    char * current_data = readFile(path);
+    char * info = "\nclient: ";
+    info = mergeString(info, client);
+    info = mergeString(info, "\ndate: ");
+    info = mergeString(info, time);
+    info = mergeString(info, "\nstatus: ");
+    info = mergeString(info, status);
+    info = mergeString(info, "\nfile: ");
+    info = mergeString(info, file);
+    info = mergeString(info, "\n");
+    if(strcmp(current_data, "") != 0){
+        info = mergeString(current_data, info);
+    }
+    writeFile(path, info);
+    free(info);
+    free(current_data);
+}
+
+/*  
+*   C library function - strftime()
+*   This code is a modification obtained at the website https://www.tutorialspoint.com/c_standard_library/c_function_strftime.htm
+*   Creator: tutorialspoint.
+*   This returns the current time in a string format.
+*/
+char * getCurrentTime(){
+    time_t current_time;
+    struct tm *info;
+    char * time_S = (char *) calloc(30, sizeof(char));
+    time(&current_time);
+    info = localtime(&current_time);
+    strftime(time_S, 30, "%x - %I:%M:%S%p", info);
+    return time_S;
+}
+
+// This function returns a new JSON converted into a better format.
+char * getResponseData(char * response){
+    return findRight("\n\n", response, 0);
+}
+
+/*
+char * JSON = findBetween("{", "}", response, 0);
+    char * new_JSON = "";
+    char * split_data;
+    JSON = mergeString(",", JSON);
+    JSON = mergeString(JSON, ",");
+    int occurrence = 0;
+    while((split_data = findBetween(",",",",JSON, occurrence)) != NULL){
+        split_data = mergeString(split_data, "\n");
+        new_JSON = mergeString(new_JSON, split_data);
+        occurrence++;
+    }
+    return new_JSON;
+*/
