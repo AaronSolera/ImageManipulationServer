@@ -20,4 +20,4 @@ echo "Removing bin file..."
 rm /usr/bin/ImageServer
 #Remove config file
 echo "Removing config file..."
-rm /etc/server/config.confi
+rm /etc/server/config.conf
