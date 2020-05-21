@@ -42,9 +42,9 @@ conf info;
 process_node process_list;
 char * time_s;
 
-void init(){
+void init(char * config_path){
     // Reading configuration file.
-    setConfigurationFileData(&info);
+    setConfigurationFileData(&info, config_path);
     // Creating socket file descriptor. If the syscall socket returns 0 there is an error.
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("In socket");
@@ -131,9 +131,9 @@ void * processing(void *ptr){
 }
 
 
-void start(){
+void start(char * config_path){
     // Initializing all server variables
-    init();
+    init(config_path);
     // Main server thread initialization
     pthread_create(&server_thread,  NULL, run, NULL);
     pthread_create(&process_thread, NULL, processing, NULL);
@@ -148,8 +148,8 @@ void stop(){
     close(server_fd);
 }
 
-void startServer(){
-    start();
+void startServer(char * config_path){
+    start(config_path);
     printf("Server running on port %d\n", info.port);
     printf("Http Server has started\n");
 }

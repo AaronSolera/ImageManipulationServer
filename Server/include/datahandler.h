@@ -16,7 +16,7 @@ typedef struct info conf;
 void   checkPath(char * path);
 char * getProperty(char * property, char * data);
 char * getCurrentTime();
-void   setConfigurationFileData(conf * info);
+void   setConfigurationFileData(conf * info, char * config_path);
 char * getResponseData(char * response);
 void   writeLog(char * path, char * client, char * file, char * time, char * status);
 

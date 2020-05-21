@@ -159,8 +159,8 @@ char * getProperty(char * property, char * data){
 }
 
 // This function will read the existing configuration file for creating or checking the needed directories.
-void setConfigurationFileData(conf * info){
-    char * config_file = readFile("/etc/server/config.conf");
+void setConfigurationFileData(conf * info, char * config_path){
+    char * config_file = readFile(config_path);
     printf("%s\n", config_file);
     printf("Configuration file successsfuly read. Everything has been configured.\n");
     // Setting all conf struct values for being used by the server.
