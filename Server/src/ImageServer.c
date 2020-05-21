@@ -121,6 +121,7 @@ void HandleSignal(int sig)
 			unlink(pid_file_name);
 		}
 		running = 0;
+		stopServer();
 		/* Reset signal handling to default behavior */
 		signal(SIGINT, SIG_DFL);
 	}

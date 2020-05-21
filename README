@@ -1,0 +1,26 @@
+Curso: Princios de Sistemas Operativos
+Tarea 1
+Semestre: I
+Univerdidad: TEC
+Integrantes: Efrén Carvajal Valverde, Ignacio, Sebastian, Richard, Aaron
+
+Instrucciones generales para utilización del proyecto
+
+Instrucciones para ejecución del servidor
+
+0. Crear la carpeta server en la ruta /etc/
+1. Ingresar a la carpeta Server
+2. En modo superuser ejecutar el makefile
+3. Configurar el archivo config.config que se encuentra en la ruta /etc/server
+4. Ejecutar el comando systemctl status ImageServer para ver el status del servicio 
+5. Ejecutar el comando systemctl start ImageServer para iniciar el servidor 
+
+Para detener el servidor ejecutar: systemctl stop ImageServer
+Para reinicar el servidor ejecutar: systemctl restart ImageServer
+
+Ya el servicio se encuetra configurado para arrancar junto al Sistema Operativo 
+Ya el servicio se encuentra configurado para detenerse al apagar/reinicar el equipo.
+
+Instrucciones para cliente web
+
+Instrucciones para cliente móvil
