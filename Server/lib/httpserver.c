@@ -28,7 +28,7 @@ int addrlen = sizeof(address);
 // Process counter
 int process_id = 0;
 // Main server thread.
-pthread_t server_thread, process_thread;
+pthread_t server_thread;
 // Mutex struct.
 pthread_mutex_t lock;
 // Client response memory variables. 
@@ -42,11 +42,11 @@ conf info;
 // List for process management.
 process_node process_list;
 char * time_s;
+int is_processing = TRUE;
 
 void init(char * config_path){
     // Reading configuration file.
     setConfigurationFileData(&info, config_path);
-    writeFile(mergeString(info->log_path, "/log.file"), "Starting Server...");
     // Creating socket file descriptor. If the syscall socket returns 0 there is an error.
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("In socket");
@@ -124,10 +124,10 @@ void * run(void *ptr){
     }
 }
 
-void * processing(void *ptr){
+void processing(){
     // Current process to work with.
     process_node current_process;
-    while(TRUE){
+    while(is_processing){
         // Getting the current system date.
         getCurrentTime(time_s);
         // If process list is not empty.
@@ -193,14 +193,13 @@ void start(char * config_path){
     init(config_path);
     // Main server thread initialization
     pthread_create(&server_thread,  NULL, run, NULL);
-    pthread_create(&process_thread, NULL, processing, NULL);
-    pthread_join(server_thread, NULL);
+    processing();
 }
 
 void stop(){
     // Close the sever thread
     pthread_cancel(server_thread);
-    pthread_cancel(process_thread);
+    is_processing = FALSE;
     // Closing the used sockets.
     close(new_socket);
     close(server_fd);
