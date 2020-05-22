@@ -93,7 +93,7 @@ void * run(void *ptr){
         // Reading client response and storing that data into the response.
         read(new_socket, response, MAX_RESPONSE_SIZE);
         // Using the function getResponseProperty we get the content length from the response
-        char * request_size_str = getProperty("content-length", response);
+        char * request_size_str = getProperty("Content-Length", response);
         // Check if content length property exists
         if(request_size_str != NULL){
             // Turning content length to integer
@@ -106,7 +106,7 @@ void * run(void *ptr){
             }
         }
         // Getting all response properties to be used.
-        char * client = getProperty("user-agent", response);
+        char * client = getProperty("User-Agent", response);
         char * file = getProperty("name", response);
         char * img = getProperty("img", response);
         char * option = getProperty("option", response);
