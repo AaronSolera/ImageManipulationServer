@@ -115,6 +115,7 @@ void * run(void *ptr){
             writeLog(mergeString(info.log_path, "/log.file"), client, file, time_s, "pending");
             // Inserting process information at process list.
             insertProcess(&process_list, ++process_id, client, file, time_s, option, width, height, img);
+            memset(response, 0, MAX_RESPONSE_SIZE);
         }
 
         printf("\n------------------ Client connection finished -------------------\n\n");
