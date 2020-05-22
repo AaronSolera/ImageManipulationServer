@@ -34,7 +34,6 @@ pthread_mutex_t lock;
 // Client response memory variables. 
 char * response;
 char * temp_response;
-char * response_data;
 // Configuration file string data.
 char * conf_data;
 // Configuration struct. This has all configuration file usefull data.
