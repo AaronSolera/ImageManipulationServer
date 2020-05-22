@@ -51,7 +51,7 @@ static FILE *log_stream;
 void ReadConfigFile()
 {
 	FILE *conf_file = NULL;
-	
+
 	conf_file = fopen(conf_file_name, "r");
 
 	if (conf_file == NULL) {
@@ -277,7 +277,6 @@ int main(int argc, char *argv[])
 	if (conf_file_name != NULL) free(conf_file_name);
 	if (log_file_name != NULL) free(log_file_name);
 	if (pid_file_name != NULL) free(pid_file_name);
-	if (log_file_name != NULL) free(log_file_name);
 
 	fprintf(log_stream, "Stoped Service %s \n", app_name);
 		/* Close log file, when it is used. */
