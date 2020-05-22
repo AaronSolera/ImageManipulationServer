@@ -86,9 +86,9 @@ void * run(void *ptr){
         free(response);
         free(temp_response);
         // Reserving memory for client response.
-        char * response = (char *) calloc(MAX_RESPONSE_SIZE, sizeof(char));
+        response = (char *) calloc(MAX_RESPONSE_SIZE, sizeof(char));
         // This response helps to read the socket more than once because the data is not being completely read.
-        char * temp_response = (char *) calloc(MAX_RESPONSE_SIZE/4, sizeof(char));
+        temp_response = (char *) calloc(MAX_RESPONSE_SIZE/4, sizeof(char));
         // Reading client response and storing that data into the response.
         read(new_socket, response, MAX_RESPONSE_SIZE);
         // Using the function getResponseProperty we get the content length from the response
@@ -115,7 +115,6 @@ void * run(void *ptr){
             writeLog(mergeString(info.log_path, "/log.file"), client, file, time_s, "pending");
             // Inserting process information at process list.
             insertProcess(&process_list, ++process_id, client, file, time_s, option, width, height, img);
-            memset(response, 0, MAX_RESPONSE_SIZE);
         }
 
         printf("\n------------------ Client connection finished -------------------\n\n");
