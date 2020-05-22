@@ -7,18 +7,24 @@ typedef struct node {
 	char * client;
 	char * file;
 	char * date;
+	char * width;
+	char * height;
 	char * img;
+	char * option;
 	int id;
 	struct node * next;
 } * process_node;
 
 // This function inserts a new process into the process list.
-void insertProcess(process_node * process, int id, char * client, char * file, char * date, char * img){
+void insertProcess(process_node * process, int id, char * client, char * file, char * date, char* option, char * width, char * height, char * img){
 	process_node current = (*process), new_process = (process_node) malloc(sizeof(struct node));
 	new_process->client = client;
 	new_process->file = file;
 	new_process->date = date;
+	new_process->width = width;
+	new_process->height = height;
 	new_process->img = img;
+	new_process->option = option;
 	new_process->id = id;
 	new_process->next = NULL;
 	if((*process) == NULL){
@@ -37,7 +43,10 @@ void deleteProcess(process_node * process, int id){
 		to_delete = to_delete->next;
 	}
 
-	if(to_delete->next == NULL){
+	if(previous == NULL){
+		(* process) = NULL;
+		free(to_delete);
+	}else if(to_delete->next == NULL){
 		previous->next = NULL;
 		free(to_delete);
 	}else if(previous == NULL){

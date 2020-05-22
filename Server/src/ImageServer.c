@@ -19,6 +19,7 @@
  * ***** END GPL LICENSE BLOCK *****
  *
  * Contributor(s): Jiri Hnidek <jiri.hnidek@tul.cz>.
+ * Contributor(s): Efren Carvajal
  *
  */
 
@@ -36,7 +37,6 @@
 #include <httpserver.h>
 
 static int running = 0;
-static int delay = 1;
 static int counter = 0;
 static char *conf_file_name = NULL;
 static char *log_file_name = NULL;
@@ -48,40 +48,25 @@ static FILE *log_stream;
 /**
  * \brief Read configuration from config file
  */
-int ReadConfigFile(int reload)
+void ReadConfigFile()
 {
 	FILE *conf_file = NULL;
-	int ret = -1;
-
-	if (conf_file_name == NULL) return 0;
 
 	conf_file = fopen(conf_file_name, "r");
 
 	if (conf_file == NULL) {
 		syslog(LOG_ERR, "Can not open config file: %s, error: %s",
 				conf_file_name, strerror(errno));
-		return -1;
+		fprintf(log_stream, "Can not open config file: %s, error: %s",
+				conf_file_name, strerror(errno));
 	}
-
-	ret = fscanf(conf_file, "%d", &delay);
-
-	if (ret > 0) 
+	else
 	{
-		if (reload == 1) 
-		{
-			syslog(LOG_INFO, "Reloaded configuration file %s of %s", conf_file_name, app_name);
-			fprintf(log_stream, "Reloaded configuration file %s of %s \n", conf_file_name, app_name);
-		}
-		else
-		{
-			syslog(LOG_INFO, "Configuration of %s read from file %s", app_name, conf_file_name);
-			fprintf(log_stream, "Configuration of %s read from file %s \n", app_name, conf_file_name);
-		}
+		syslog(LOG_INFO, "Loaded daemon config file ... %s", app_name);
+		fprintf(log_stream, "Loaded daemon config file ...\n");
 	}
-
+	
 	fclose(conf_file);
-
-	return ret;
 }
 
 void OpenLogFile()
@@ -128,7 +113,7 @@ void HandleSignal(int sig)
 	else if (sig == SIGHUP) 
 	{
 		fprintf(log_stream, "Reloading daemon config file ...\n");
-		ReadConfigFile(1);
+		ReadConfigFile();
 	}
 	else if (sig == SIGCHLD)
 	{
@@ -280,21 +265,11 @@ int main(int argc, char *argv[])
 	signal(SIGHUP, HandleSignal);
 
 	/* Read configuration from config file */
-	ReadConfigFile(0);
+	ReadConfigFile();
 
 	/* This global variable can be changed in function handling signal */
-	running = 1;
 	fprintf(log_stream, "Started Service %s \n", app_name);
 	startServer(conf_file_name);
-	/* Never ending loop of server */
-	//while (running == 1) {
-		/* Debug print */
-	//	fprintf(log_stream, "Debug: %d\n", counter++);
-	//	fflush(log_stream);
-
-		/* TODO: dome something useful here */
-	//	sleep(delay);
-	//}
 
 	fprintf(log_stream, "Stopping... %s \n", app_name);
 
@@ -302,7 +277,6 @@ int main(int argc, char *argv[])
 	if (conf_file_name != NULL) free(conf_file_name);
 	if (log_file_name != NULL) free(log_file_name);
 	if (pid_file_name != NULL) free(pid_file_name);
-	if (log_file_name != NULL) free(log_file_name);
 
 	fprintf(log_stream, "Stoped Service %s \n", app_name);
 		/* Close log file, when it is used. */

@@ -11,15 +11,18 @@
 
 // Struct used for storing an configuring information abstraction.
 struct info {
+   int port;
    char * red_path;
    char * green_path;
    char * blue_path;
    char * mean_path;
    char * median_path;
-   char * record_path;
-   int port;
+   char * log_path;
 };
 typedef struct info conf;
+
+time_t current_time;
+struct tm *info;
 
 // This function returns the right side of a text since a dividing string. This dividing string can be more than once inside the text, so the occurrence parameter will demand which of them is.
 char * findRight(char * string, char * text, int occurrence){
@@ -110,6 +113,9 @@ void checkDirectory(char * path){
 void checkPath(char * path){
     int occurrence_counter = 0;
     char * temp_path;
+    if(*path == '/'){
+        occurrence_counter = 1;
+    }
     while((temp_path = findLeft("/", path, occurrence_counter++)) != NULL){
         checkDirectory(temp_path);
     }
@@ -148,7 +154,6 @@ char * writeFile(char* name, char * data){
     write(fd, data, strlen(data));
     // Closing written file.
     close(fd);
-    printf("------------------------------------------------------------\n%s\n------------------------------------------------------------\nThis has been witten at %s\n------------------------------------------------------------\n", data, name);
 }
 
 // This was meant for getting http Post requests properties, but it works for every "key: value" format.
@@ -165,19 +170,19 @@ void setConfigurationFileData(conf * info, char * config_path){
     printf("Configuration file successsfuly read. Everything has been configured.\n");
     // Setting all conf struct values for being used by the server.
     info->port = atoi(getProperty("PORT",config_file));
-    info->red_path = mergeString(getProperty("COLOR_DIR", config_file),"/red");
-    info->green_path = mergeString(getProperty("COLOR_DIR", config_file),"/green");
-    info->blue_path = mergeString(getProperty("COLOR_DIR", config_file),"/blue");
-    info->mean_path = mergeString(getProperty("FILTER_DIR", config_file),"/mean");
-    info->median_path = mergeString(getProperty("FILTER_DIR", config_file),"/median");
-    info->record_path = getProperty("RECORD_DIR", config_file);
+    info->red_path = mergeString(getProperty("COLOR_DIR", config_file),"/red/");
+    info->green_path = mergeString(getProperty("COLOR_DIR", config_file),"/green/");
+    info->blue_path = mergeString(getProperty("COLOR_DIR", config_file),"/blue/");
+    info->mean_path = mergeString(getProperty("FILTER_DIR", config_file),"/mean/");
+    info->median_path = mergeString(getProperty("FILTER_DIR", config_file),"/median/");
+    info->log_path = getProperty("LOG_DIR", config_file);
     // Checking all paths. If they don't exists, they will be generated.
     checkPath(info->red_path);
     checkPath(info->green_path);
     checkPath(info->blue_path);
     checkPath(info->mean_path);
     checkPath(info->median_path);
-    checkPath(info->record_path);
+    checkPath(info->log_path);
 }
 
 // It converts an integer into a String.
@@ -200,6 +205,7 @@ void writeLog(char * path, char * client, char * file, char * time, char * statu
     info = mergeString(info, "\nfile: ");
     info = mergeString(info, file);
     info = mergeString(info, "\n");
+    printf("------------------------------------------------------------\n%s\n------------------------------------------------------------\nThis has been added at %s\n------------------------------------------------------------\n", info, path);
     if(strcmp(current_data, "") != 0){
         info = mergeString(current_data, info);
     }
@@ -214,14 +220,10 @@ void writeLog(char * path, char * client, char * file, char * time, char * statu
 *   Creator: tutorialspoint.
 *   This returns the current time in a string format.
 */
-char * getCurrentTime(){
-    time_t current_time;
-    struct tm *info;
-    char * time_S = (char *) calloc(30, sizeof(char));
+void getCurrentTime(char * time_S){
     time(&current_time);
     info = localtime(&current_time);
     strftime(time_S, 30, "%x - %I:%M:%S%p", info);
-    return time_S;
 }
 
 // This function returns a new JSON converted into a better format.

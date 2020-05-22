@@ -9,13 +9,19 @@ CFLAGS=-I.
 all: daemon config
 
 daemon : libhttpserver.a
-	$(CC) -o ./bin/$(PROG) ./src/$(PROG).c -I./include ./lib/libhttpserver.a ./lib/libdatahandler.a ./lib/libprocesshandler.a -pthread
+	$(CC) -o ./bin/$(PROG) ./src/$(PROG).c -I./include ./lib/libhttpserver.a ./lib/libdatahandler.a ./lib/libprocesshandler.a ./lib/libimage_processing.a -pthread -lm
 
 libhttpserver.a: httpserver.o
 	$(LIB) $(MAKE_STATIC_LIB) libhttpserver.a httpserver.o
 
-httpserver.o: libdatahandler.a libprocesshandler.a ./lib/httpserver.c
+httpserver.o: libdatahandler.a libprocesshandler.a libimage_processing.a ./lib/httpserver.c
 	$(LIB) $(CC) -c httpserver.c -I../include
+
+libimage_processing.a: image_processing.o
+	$(LIB) $(MAKE_STATIC_LIB) libimage_processing.a image_processing.o
+
+image_processing.o: ./lib/image_processing.c
+	$(LIB) $(CC) -c image_processing.c
 
 libdatahandler.a: datahandler.o
 	$(LIB) $(MAKE_STATIC_LIB) libdatahandler.a datahandler.o

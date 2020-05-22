@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Servidor de filtrado de imágenes</title>
+</head>
+<body>
+
+	<div>
+		<h5><b>Selecciona el archivo:</b></h5>
+		<input id='img_input' type='file' accept='image/*' name='image'/ onchange="getFilename(this)">
+		<p><img id='preview_img' /></p>
+		<p id="base64_text"></p> <!-- This code is just for debugging --> 
+	</div>
+
+	<label for="opcion">Funcion:</label>
+	<input type="radio" name="opcion" value="0" checked="checked">Filtrar</input>
+	<input type="radio" name="opcion" value="1">Clasificar</input>
+		
+	<script type="text/javascript">
+
+		var img_data, canvas, img;
+
+
+
+		
+		/* 
+		*	Read data from HTML input using Javascript API
+		*   This code is a modification obtained at the website https://www.html5rocks.com/es/tutorials/file/dndfiles/
+		*   Creator: Eric Bidelman, Jun 18, 2010.
+		*/
+		function handleFileSelect(evt) {
+			// FileList object
+		    var files = evt.target.files;
+
+		    // Loop through the FileList and render image files as thumbnails.
+		    for (var i = 0, f; f = files[i]; i++) {
+
+		      	// Only process image files.
+		      	if (!f.type.match('image.*')) {
+		        	continue;
+		      	}
+
+		      	// Create an object file reader.
+		      	var reader = new FileReader();
+
+		      	// Closure to capture the file information.
+		      	reader.onload = (function(theFile) {
+		        	return function(e) {
+		          		// Set the source to the image in the HTML part of this code.
+		          		document.getElementById("preview_img").src = e.target.result;
+		          		// Get the image for being proccesed using the HTML object.
+		          		img = document.getElementById("preview_img");
+
+
+						/* 
+						*	HTML image convertion to RGB array
+						*   This code is a modification obtained at the website https://www.w3schools.com/tags/canvas_drawimage.asp
+						*   Creator: w3schools.com
+						*/
+		          		// Creating a temporal canvas object to manipulate the image.
+					    canvas = document.createElement("canvas");
+					    // Setting the canvas dimentions with img information.
+			  			canvas.width = img.width;
+			  			canvas.height = img.height;
+						// Setting the canvas to work with 2D objects.
+			   			var ctx = canvas.getContext("2d");
+			   			// Copy the image contents to the canvas
+						ctx.drawImage(img, 0, 0);
+			   			// Image convertion to an RGBA array list. 
+			   			img_data = ctx.getImageData(0, 0, img.width, img.height).data.toString();
+			   			// This code deletes the A value of the RGBA array list. This is because the A value is not necessary for this project.  
+			   			var temp = '', count = 1;
+			   			for (var i = 0; i < img_data.length; i++) {
+			   				if(img_data.charAt(i) == ','){
+			   					count++;
+			   				}
+			   				if(count%4 != 0){
+			   					temp += img_data.charAt(i)
+			   				}
+						}
+						img_data = temp;
+
+			   			console.log(img_data);					
+
+						document.getElementById("base64_text").innerHTML = "La imagen esta lista. Presione el boton <b>Procesar</b> para continuar.";
+		        }})(f);
+		        
+		      	// Read in the image file as a data URL.
+		      	reader.readAsDataURL(f);
+		    }
+      		
+  		}
+
+  		function getFilename(fileInput) {
+			var files = fileInput.files;
+    		nombre = files[0].name;
+		}
+
+  		// Add the event listener. When an image is detected, the listeners will call the function handleFileSelect.
+		document.getElementById('img_input').addEventListener('change', handleFileSelect, false);
+
+
+		/* 
+		*	This is a POST method to send the image data to the server in JSON format.
+		*   This code is a modification obtained at the website https://stackoverflow.com/questions/6418220/javascript-send-json-object-with-ajax
+		*   Creator: Nathan Romano, Jun 20, 2011.
+		*/
+		function POST(){
+			var xmlhttp = new XMLHttpRequest();
+			xmlhttp.open("POST", "infoImagen");
+			xmlhttp.setRequestHeader("Content-Type", "text/plain");
+			var name = "name: " + nombre;
+			var width = "width: " + img.width;
+			var height = "height: " + img.height;
+			var data = "img: " + img_data;
+
+			var radios = document.getElementsByName('opcion');
+			opc=0;
+
+			for (var i=0, length=radios.length; i<length; i++) {
+			  if (radios[i].checked) {
+			    opc=radios[i].value;
+			    break;
+			  }
+			}
+
+			var option = "option: " + opc;
+			xmlhttp.send(name + "\n" + width + "\n" + height + "\n" + data + "\n" + option);
+			document.getElementById("base64_text").innerHTML = "Imagen enviada con exito al servidor.";
+	  	}
+
+	</script>
+
+	<button id='send_img_button' onclick='POST()'>Procesar</button>
+
+</body>
+</html>
+

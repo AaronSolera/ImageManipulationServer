@@ -8,6 +8,7 @@
 #include <string.h>
 #include <datahandler.h>
 #include <processhandler.h>
+#include <image_processing.h>
 /*  
 *   Server side C program to demonstrate Socket programming
 *   This code is a modification obtained at the website https://medium.com/from-the-scratch/http-server-what-do-you-need-to-know-to-build-a-simple-http-server-from-scratch-d1ef8945e4fa
@@ -74,6 +75,7 @@ void init(char * config_path){
     // Reserving memory to avoid segmentation fault when the server is suddenly closed.
     response = (char *) calloc(1, sizeof(char));
     temp_response = (char *) calloc(1, sizeof(char));
+    time_s = (char *) calloc(30, sizeof(char));
 }
 
 void * run(void *ptr){
@@ -90,7 +92,7 @@ void * run(void *ptr){
         // Reading client response and storing that data into the response.
         read(new_socket, response, MAX_RESPONSE_SIZE);
         // Using the function getResponseProperty we get the content length from the response
-        char * request_size_str = getProperty("content-length", response);
+        char * request_size_str = getProperty("Content-Length", response);
         // Check if content length property exists
         if(request_size_str != NULL){
             // Turning content length to integer
@@ -102,31 +104,86 @@ void * run(void *ptr){
                 memset(temp_response, 0, MAX_RESPONSE_SIZE/4);
             }
         }
-        //printf("%s\n",response);
-        char * client = getProperty("user-agent", response);
+        printf("%s\n", response);
+        // Getting all response properties to be used.
+        char * client = getProperty("User-Agent", response);
         char * file = getProperty("name", response);
         char * img = getProperty("img", response);
-
-        writeLog("log.file", client, file, time_s, "pending");
-        insertProcess(&process_list, ++process_id, client, file, time_s, img);
-        /*
-        process_node aux = process_list;
-        do{
-            printf("%s\n", aux->client);
-            printf("%s\n", aux->file);
-        }while((aux = aux->next) != NULL);*/
+        char * option = getProperty("option", response);
+        char * width = getProperty("width", response);
+        char * height = getProperty("height", response);
+        // Writing information of the new process at log.file.
+        writeLog(mergeString(info.log_path, "/log.file"), client, file, time_s, "pending");
+        // Inserting process information at process list.
+        insertProcess(&process_list, ++process_id, client, file, time_s, option, width, height, img);
 
         printf("\n------------------ Client connection finished -------------------\n\n");
-        printf("\n------------------ Waiting for new connection ------------------\n\n");
+        printf("\n------------------ Waiting for new s ------------------\n\n");
         // Closing the socket.
         close(new_socket);
     }
 }
 
 void * processing(void *ptr){
+    // Current process to work with.
+    process_node current_process;
     while(TRUE){
-        time_s = getCurrentTime();
-        
+        // Getting the current system date.
+        getCurrentTime(time_s);
+        // If process list is not empty.
+        if(process_list != NULL){
+            // Getting the smallest img data from process node.
+            current_process = getSmallestProcess(&process_list);
+            int width = atoi(current_process->width);
+            int height = atoi(current_process->height);
+            int img_color_type;
+            unsigned char *** img = stringToImage(&height, &width, current_process->img);
+            unsigned char *** output_img = allocateMemorySpaceForImage(&height, &width);
+            // Using option information to fiter o classify the image.
+            if(strcmp(current_process->option, "0") == 0){
+                // Converting image to gray scale. This is for applying mean and median filter.
+                convertImageToGrayscale(&height, &width, img);
+                // Setting the string path for storing the filtered median image.
+                char * medianFilterImageFileName = mergeString(info.median_path, current_process->file);
+                // Applying median filter and storing images.
+                medianFilter(&height, &width, img, output_img);                                                     //Apply a median filter to the image
+                generateBitmapImage(height, width, output_img, mergeString(medianFilterImageFileName, ".bmp"));     //Save the image
+
+                printf("-> Image filtered with median filter and saved\n");
+
+                // Setting the string path for store
+                char * meanFilterImageFileName = mergeString(info.mean_path, current_process->file);
+
+                // Applying mean filter and storing images.
+                meanFilter(&height, &width, img, output_img);                                                       //Apply a mean filter to the image
+                generateBitmapImage(height, width, output_img, mergeString(meanFilterImageFileName, ".bmp"));       //Save the image
+                
+                printf("-> Image filtered with mean filter and saved\n");
+            }else{
+                // This function gives
+                classifyImageByColor(&height, &width, img, &img_color_type);
+                char * classifyColorImageFileName;
+                // Color path selection
+                if (img_color_type == 0){
+                    classifyColorImageFileName = mergeString(info.red_path, current_process->file);
+                    generateBitmapImage(height, width, img, mergeString(classifyColorImageFileName, ".bmp"));   //Save the image
+                }else if (img_color_type == 1){
+                    classifyColorImageFileName = mergeString(info.green_path, current_process->file);
+                    generateBitmapImage(height, width, img, mergeString(classifyColorImageFileName, ".bmp"));  //Save the image
+                }else{
+                    classifyColorImageFileName = mergeString(info.blue_path, current_process->file);
+                    generateBitmapImage(height, width, img, mergeString(classifyColorImageFileName, ".bmp"));  //Save the image
+                }
+            }
+            // Freeing all image memory arrays.
+            deallocateMemorySpaceOfImage(&height, &width, img);
+            deallocateMemorySpaceOfImage(&height, &width, output_img);
+
+            // Writing the completed process information at log.file.
+            writeLog(mergeString(info.log_path, "/log.file"), current_process->client, current_process->file, time_s, "completed");
+            // Deleting the completed process from process list.
+            deleteProcess(&process_list, current_process->id);
+        }
     }
 }
 
@@ -137,6 +194,7 @@ void start(char * config_path){
     // Main server thread initialization
     pthread_create(&server_thread,  NULL, run, NULL);
     pthread_create(&process_thread, NULL, processing, NULL);
+    pthread_join(server_thread, NULL);
 }
 
 void stop(){
@@ -146,6 +204,7 @@ void stop(){
     // Closing the used sockets.
     close(new_socket);
     close(server_fd);
+    free(time_s);
 }
 
 void startServer(char * config_path){
