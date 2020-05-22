@@ -183,7 +183,6 @@ void setConfigurationFileData(conf * info, char * config_path){
     checkPath(info->mean_path);
     checkPath(info->median_path);
     checkPath(info->log_path);
-    writeFile(mergeString(info->log_path, "/log.file"), "Starting Server...");
 }
 
 // It converts an integer into a String.

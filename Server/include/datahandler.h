@@ -20,5 +20,6 @@ void   setConfigurationFileData(conf * info, char * config_path);
 char * mergeString(char * string1, char * string2);
 char * getResponseData(char * response);
 void   writeLog(char * path, char * client, char * file, char * time, char * status);
+char * writeFile(char* name, char * data);
 
 #endif
