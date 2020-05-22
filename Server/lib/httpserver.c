@@ -92,9 +92,8 @@ void * run(void *ptr){
         read(new_socket, response, MAX_RESPONSE_SIZE);
         // Using the function getResponseProperty we get the content length from the response
         char * request_size_str = getProperty("Content-Length", response);
-        char * client = getProperty("User-Agent", response);
         // Check if content length property exists
-        if(request_size_str != NULL && client != NULL){
+        if(request_size_str != NULL){
             // Turning content length to integer
             int request_size = atoi(request_size_str);
             // If the content read by the response is less than the content lenght, we read again the socket until we get the whole response
@@ -103,18 +102,20 @@ void * run(void *ptr){
                 strcat(response, temp_response);
                 memset(temp_response, 0, MAX_RESPONSE_SIZE/4);
             }
-            printf("%s\n", response);
-            // Getting all response properties to be used.
-            char * file = getProperty("name", response);
-            char * img = getProperty("img", response);
-            char * option = getProperty("option", response);
-            char * width = getProperty("width", response);
-            char * height = getProperty("height", response);
-            // Writing information of the new process at log.file.
-            writeLog(mergeString(info.log_path, "/log.file"), client, file, time_s, "pending");
-            // Inserting process information at process list.
-            insertProcess(&process_list, ++process_id, client, file, time_s, option, width, height, img);
         }
+
+        printf("%s\n", response);
+        // Getting all response properties to be used.
+        char * client = getProperty("User-Agent", response);
+        char * file = getProperty("name", response);
+        char * img = getProperty("img", response);
+        char * option = getProperty("option", response);
+        char * width = getProperty("width", response);
+        char * height = getProperty("height", response);
+        // Writing information of the new process at log.file.
+        writeLog(mergeString(info.log_path, "/log.file"), client, file, time_s, "pending");
+        // Inserting process information at process list.
+        insertProcess(&process_list, ++process_id, client, file, time_s, option, width, height, img);
 
         printf("\n------------------ Client connection finished -------------------\n\n");
         printf("\n------------------ Waiting for new s ------------------\n\n");
