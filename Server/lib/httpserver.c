@@ -194,6 +194,7 @@ void start(char * config_path){
     // Main server thread initialization
     pthread_create(&server_thread,  NULL, run, NULL);
     pthread_create(&process_thread, NULL, processing, NULL);
+    pthread_join(server_thread, NULL);
 }
 
 void stop(){
