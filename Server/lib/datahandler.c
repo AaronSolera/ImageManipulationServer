@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
 #include <time.h>
 
 #define MAX_FILE_SIZE 10485760
@@ -28,7 +29,7 @@ struct tm *info;
 char * findRight(char * string, char * text, int occurrence){
     int string_counter = 0;
     for(int text_counter = 0; text_counter < strlen(text); text_counter ++){
-        if(*(string + string_counter) == *(text + text_counter)){
+        if(*(string + string_counter) == tolower(*(text + text_counter)) || *(string + string_counter) == toupper(*(text + text_counter))){
             string_counter ++;
             if(string_counter == strlen(string)){
                 if((occurrence--) == 0){
