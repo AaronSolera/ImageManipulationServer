@@ -2,13 +2,13 @@
 #define _DATAHANDLER_H  
 
 struct info {
+   int port;
    char * red_path;
    char * green_path;
    char * blue_path;
    char * mean_path;
    char * median_path;
    char * log_path;
-   int port;
 };
 
 typedef struct info conf;

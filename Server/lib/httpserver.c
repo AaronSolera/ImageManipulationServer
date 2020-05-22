@@ -28,7 +28,7 @@ int addrlen = sizeof(address);
 // Process counter
 int process_id = 0;
 // Main server thread.
-pthread_t server_thread;
+pthread_t server_thread, process_thread;
 // Mutex struct.
 pthread_mutex_t lock;
 // Client response memory variables. 
@@ -42,7 +42,6 @@ conf info;
 // List for process management.
 process_node process_list;
 char * time_s;
-int is_processing = TRUE;
 
 void init(char * config_path){
     // Reading configuration file.
@@ -105,6 +104,7 @@ void * run(void *ptr){
                 memset(temp_response, 0, MAX_RESPONSE_SIZE/4);
             }
         }
+        printf("%s\n", response);
         // Getting all response properties to be used.
         char * client = getProperty("User-Agent", response);
         char * file = getProperty("name", response);
@@ -124,10 +124,10 @@ void * run(void *ptr){
     }
 }
 
-void processing(){
+void * processing(void *ptr){
     // Current process to work with.
     process_node current_process;
-    while(is_processing){
+    while(TRUE){
         // Getting the current system date.
         getCurrentTime(time_s);
         // If process list is not empty.
@@ -193,13 +193,14 @@ void start(char * config_path){
     init(config_path);
     // Main server thread initialization
     pthread_create(&server_thread,  NULL, run, NULL);
-    processing();
+    pthread_create(&process_thread, NULL, processing, NULL);
+    pthread_join(server_thread, NULL);
 }
 
 void stop(){
     // Close the sever thread
     pthread_cancel(server_thread);
-    is_processing = FALSE;
+    pthread_cancel(process_thread);
     // Closing the used sockets.
     close(new_socket);
     close(server_fd);
