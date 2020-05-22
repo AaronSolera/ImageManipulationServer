@@ -44,9 +44,9 @@ process_node process_list;
 char * time_s;
 
 void init(char * config_path){
-    writeFile(mergeString(info->log_path, "/log.file"), "Starting Server...");
     // Reading configuration file.
     setConfigurationFileData(&info, config_path);
+    writeFile(mergeString(info->log_path, "/log.file"), "Starting Server...");
     // Creating socket file descriptor. If the syscall socket returns 0 there is an error.
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("In socket");
