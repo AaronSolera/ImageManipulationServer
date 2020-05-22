@@ -44,6 +44,7 @@ process_node process_list;
 char * time_s;
 
 void init(char * config_path){
+    printf("Initializing...\n");
     // Reading configuration file.
     setConfigurationFileData(&info, config_path);
     // Creating socket file descriptor. If the syscall socket returns 0 there is an error.
