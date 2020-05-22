@@ -1,18 +1,5 @@
-#ifndef IMG_PROCESSING_IMAGE_PROCESSING_H
-#define IMG_PROCESSING_IMAGE_PROCESSING_H
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-
-#define COLOR_CHANNELS 3 //RED,GREEN,BLUE
-#define R_CHANNEL 2
-#define G_CHANNEL 1
-#define B_CHANNEL 0
-#define WINDOW_FILTER_SIZE 3
-#define fileHeaderSize 14
-#define infoHeaderSize 40
+#ifndef _IMAGE_PROCESSING_H
+#define _IMAGE_PROCESSING_H
 
 /*
  * Function: allocateMemorySpaceForImage

@@ -7,7 +7,7 @@ struct info {
    char * blue_path;
    char * mean_path;
    char * median_path;
-   char * record_path;
+   char * log_path;
    int port;
 };
 
@@ -15,8 +15,9 @@ typedef struct info conf;
 
 void   checkPath(char * path);
 char * getProperty(char * property, char * data);
-char * getCurrentTime();
+void   getCurrentTime(char * time_S);
 void   setConfigurationFileData(conf * info, char * config_path);
+char * mergeString(char * string1, char * string2);
 char * getResponseData(char * response);
 void   writeLog(char * path, char * client, char * file, char * time, char * status);
 
