@@ -36,7 +36,9 @@ public class Configuracion extends AppCompatActivity {
         txtPort.setText(port);
         txtId.setText(id);
     }
-
+    /*
+    * This method change the values saved on preferences.
+     */
     public void PushSave(View view) {
         if(!txtId.getText().toString().isEmpty() & !txtPort.getText().toString().isEmpty()) {
             //mediante editor podemos reestablecer la configuracion de los datos almacenados en preferencias
@@ -51,7 +53,7 @@ public class Configuracion extends AppCompatActivity {
             startActivityForResult(intent,0);
 
         }else{
-            Toast.makeText(this,"Falta completar datos",Toast.LENGTH_LONG).show();
+            Toast.makeText(this,"data is not competed",Toast.LENGTH_LONG).show();
         }
 
     }
