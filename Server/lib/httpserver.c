@@ -34,7 +34,6 @@ pthread_mutex_t lock;
 // Client response memory variables. 
 char * response;
 char * temp_response;
-char * response_data;
 // Configuration file string data.
 char * conf_data;
 // Configuration struct. This has all configuration file usefull data.
@@ -86,9 +85,9 @@ void * run(void *ptr){
         free(response);
         free(temp_response);
         // Reserving memory for client response.
-        char * response = (char *) calloc(MAX_RESPONSE_SIZE, sizeof(char));
+        response = (char *) calloc(MAX_RESPONSE_SIZE, sizeof(char));
         // This response helps to read the socket more than once because the data is not being completely read.
-        char * temp_response = (char *) calloc(MAX_RESPONSE_SIZE/4, sizeof(char));
+        temp_response = (char *) calloc(MAX_RESPONSE_SIZE/4, sizeof(char));
         // Reading client response and storing that data into the response.
         read(new_socket, response, MAX_RESPONSE_SIZE);
         // Using the function getResponseProperty we get the content length from the response
@@ -104,6 +103,7 @@ void * run(void *ptr){
                 memset(temp_response, 0, MAX_RESPONSE_SIZE/4);
             }
         }
+
         printf("%s\n", response);
         // Getting all response properties to be used.
         char * client = getProperty("User-Agent", response);
