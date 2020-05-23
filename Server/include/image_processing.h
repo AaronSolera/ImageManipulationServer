@@ -162,6 +162,10 @@ int calculateMedian(unsigned char * arr, int length);
  *    height: image height
  *    width: image width
  *    imageFileName: name of the image
+ *
+ *  This code is a modification obtained at the website: 
+ *      https://stackoverflow.com/questions/2654480/writing-bmp-image-in-pure-c-c-without-other-libraries
+ *  Creator: Minhas Kamal, Dec 13, 2017.
  */
 void generateBitmapImage(int height, int width, unsigned char *** image, char * imageFileName);
 
@@ -174,6 +178,10 @@ void generateBitmapImage(int height, int width, unsigned char *** image, char * 
  *    height: image height
  *    width: image width
  *    paddingSize:
+ *
+ *  This code is a modification obtained at the website: 
+ *      https://stackoverflow.com/questions/2654480/writing-bmp-image-in-pure-c-c-without-other-libraries
+ *  Creator: Minhas Kamal, Dec 13, 2017.
  */
 unsigned char * createBitmapFileHeader(int height, int width, int paddingSize);
 
@@ -185,6 +193,10 @@ unsigned char * createBitmapFileHeader(int height, int width, int paddingSize);
  *
  *    height: image height
  *    width: image width
+ *
+ *  This code is a modification obtained at the website: 
+ *      https://stackoverflow.com/questions/2654480/writing-bmp-image-in-pure-c-c-without-other-libraries
+ *  Creator: Minhas Kamal, Dec 13, 2017.
  */
 unsigned char * createBitmapInfoHeader(int height, int width);
 
