@@ -23,4 +23,10 @@ Ya el servicio se encuentra configurado para detenerse al apagar/reinicar el equ
 
 Instrucciones para cliente web
 
+1. Abrir archivo index.html con algún navegador.
+2. Seleccionar un archivo imagen en el equipo local.
+3. Elegir la función a realizar (Filtrar o Clasificar).
+4. Configurar dirección IP y Puerto del servidor si lo desea o enviarla a la que está por defecto.
+5. Dar en Procesar para enviar la imagen. 
+
 Instrucciones para cliente móvil
