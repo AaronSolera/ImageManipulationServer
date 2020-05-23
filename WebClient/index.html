@@ -12,10 +12,24 @@
 		<p id="base64_text"></p> <!-- This code is just for debugging --> 
 	</div>
 
-	<label for="opcion">Funcion:</label>
-	<input type="radio" name="opcion" value="0" checked="checked">Filtrar</input>
-	<input type="radio" name="opcion" value="1">Clasificar</input>
-		
+
+	<div>
+		<label for="opcion">Funcion:</label>
+		<input type="radio" name="opcion" value="0" checked="checked">Filtrar</input>
+		<input type="radio" name="opcion" value="1">Clasificar</input>
+	</div>	
+
+	<div>
+		<label for="ip">IP:</label><br>
+  		<input type="text" id="ip" name="ip" value="34.75.94.250"><br>	
+  	</div>
+
+	<div>
+		<label for="puerto">Puerto:</label><br>
+  		<input type="text" id="puerto" name="puerto" value="1717"><br>	
+  	</div>
+
+
 	<script type="text/javascript">
 
 		var img_data, canvas, img;
@@ -94,6 +108,19 @@
   		function getFilename(fileInput) {
 			var files = fileInput.files;
     		nombre = files[0].name;
+    		var punto = 0;
+    		var nombrex = "";
+			for (var i=0, length=nombre.length; i<length; i++) {
+		  		if (nombre[i]=='.') {
+		   			console.log("es punto");
+		   			punto=i;
+		    		break;
+		  		}
+		  		else{
+		  			nombrex=nombrex+nombre[i];
+		  		}
+			}
+			nombreImagen=nombrex;		
 		}
 
   		// Add the event listener. When an image is detected, the listeners will call the function handleFileSelect.
@@ -107,9 +134,12 @@
 		*/
 		function POST(){
 			var xmlhttp = new XMLHttpRequest();
-			xmlhttp.open("POST", "infoImagen");
+			httpText = "http://";
+			var ipValue = document.getElementById("ip").value;
+			var portValue = document.getElementById("puerto").value;
+			xmlhttp.open("POST", httpText+ipValue+":"+portValue);
 			xmlhttp.setRequestHeader("Content-Type", "text/plain");
-			var name = "name: " + nombre;
+			var name = "name: " + nombreImagen;
 			var width = "width: " + img.width;
 			var height = "height: " + img.height;
 			var data = "img: " + img_data;
